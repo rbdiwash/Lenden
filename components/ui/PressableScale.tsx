@@ -1,20 +1,31 @@
-import { type ReactNode } from 'react';
-import type { PressableProps, ViewStyle } from 'react-native';
-import { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-
-import { AnimatedPressable } from '@/components/ui/animated';
+import { useState, type ReactNode } from 'react';
+import {
+  Pressable,
+  type GestureResponderEvent,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 interface Props extends Omit<PressableProps, 'style' | 'children'> {
   children: ReactNode;
   className?: string;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   /** How far the surface shrinks while held. */
   scaleTo?: number;
 }
 
 /**
- * Every tappable surface in the app shrinks slightly while held. It is the one
- * interaction detail that makes a React Native list feel native.
+ * Every tappable surface shrinks slightly while held.
+ *
+ * This is a plain `Pressable` on purpose. An earlier version wrapped
+ * `Animated.createAnimatedComponent(Pressable)` so Reanimated could spring the
+ * scale, but NativeWind does not apply `className` to that component on native
+ * — every class was silently dropped, so cards lost their background, padding
+ * and layout and white button labels ended up invisible on a white screen. It
+ * looked correct on web only because react-native-web takes a different path.
+ *
+ * Keep the outer element a component NativeWind supports directly.
  */
 export function PressableScale({
   children,
@@ -22,28 +33,28 @@ export function PressableScale({
   style,
   scaleTo = 0.97,
   disabled,
+  onPressIn,
+  onPressOut,
   ...rest
 }: Props) {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const [pressed, setPressed] = useState(false);
 
   return (
-    <AnimatedPressable
+    <Pressable
       disabled={disabled}
       className={className}
-      style={[animatedStyle, style]}
-      onPressIn={() => {
-        scale.value = withSpring(scaleTo, { damping: 18, stiffness: 320 });
+      style={[pressed ? { transform: [{ scale: scaleTo }] } : null, style]}
+      onPressIn={(event: GestureResponderEvent) => {
+        setPressed(true);
+        onPressIn?.(event);
       }}
-      onPressOut={() => {
-        scale.value = withSpring(1, { damping: 18, stiffness: 320 });
+      onPressOut={(event: GestureResponderEvent) => {
+        setPressed(false);
+        onPressOut?.(event);
       }}
       {...rest}
     >
       {children}
-    </AnimatedPressable>
+    </Pressable>
   );
 }

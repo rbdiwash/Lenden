@@ -119,9 +119,19 @@ npm run type-check
 
 ## Notes for whoever picks this up next
 
-- `components/ui/animated.tsx` registers Reanimated's components with NativeWind
-  via `cssInterop`. Without it a `className` on an `Animated.View` is silently
-  dropped, so import `Animated` from there rather than from the library.
+- `components/ui/animated.tsx` registers Reanimated's `Animated.View` and
+  `Animated.Text` with NativeWind via `cssInterop`. Without it a `className` on
+  an `Animated.View` is silently dropped, so import `Animated` from there
+  rather than from the library.
+- Do **not** register a component built with `Animated.createAnimatedComponent`
+  that way. `cssInterop` appears to work on it under react-native-web but drops
+  every class on native, which is invisible in a browser preview and produces a
+  completely unstyled app on a device — no card backgrounds, no layout, and
+  white button labels on a white screen. `PressableScale` was written that way
+  once; it is now a plain `Pressable`, which NativeWind supports directly.
+- Because of the above: **verify UI changes on a simulator or device, not only
+  in `expo start --web`.** The web and native styling paths differ enough that
+  a clean browser render is not evidence the app looks right on a phone.
 - `babel-preset-expo` is a direct devDependency because the project has its own
   `babel.config.js`, which resolves presets from the project root.
 - `userInterfaceStyle: "light"` is set per-platform on iOS and Android rather

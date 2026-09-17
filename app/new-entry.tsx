@@ -14,11 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { CalendarSheet } from '@/components/ui/CalendarSheet';
 import { Chip } from '@/components/ui/Chip';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useI18n } from '@/hooks/useI18n';
 import { usePeople, useSummaries } from '@/hooks/useLedgerData';
-import { isoInDays, parseAmount } from '@/lib/format';
+import { isSameDay, isoInDays, parseAmount } from '@/lib/format';
 import { haptics } from '@/lib/haptics';
 import type { TKey } from '@/lib/i18n';
 import { dismiss } from '@/lib/nav';
@@ -26,11 +27,15 @@ import { palette } from '@/lib/theme';
 import type { EntryType } from '@/lib/types';
 import { useLedger } from '@/store/useLedger';
 
-const DUE_PRESETS: Array<{ days: number | null; labelKey: TKey }> = [
-  { days: null, labelKey: 'dueNone' },
-  { days: 7, labelKey: 'dueOneWeek' },
-  { days: 15, labelKey: 'dueFifteenDays' },
-  { days: 30, labelKey: 'dueOneMonth' },
+/** `none` clears the date, a number is that many days out, `custom` opens the calendar. */
+type DueMode = 'none' | 'custom' | 7 | 15 | 30;
+
+const DUE_PRESETS: Array<{ mode: DueMode; labelKey: TKey }> = [
+  { mode: 'none', labelKey: 'dueNone' },
+  { mode: 7, labelKey: 'dueOneWeek' },
+  { mode: 15, labelKey: 'dueFifteenDays' },
+  { mode: 30, labelKey: 'dueOneMonth' },
+  { mode: 'custom', labelKey: 'dueCustom' },
 ];
 
 export default function NewEntryScreen() {
@@ -46,9 +51,10 @@ export default function NewEntryScreen() {
   const [personId, setPersonId] = useState<string | undefined>(params.personId);
   const [amountText, setAmountText] = useState('');
   const [note, setNote] = useState('');
-  const [daysAgo, setDaysAgo] = useState(0);
-  /** Days from today until you expect the money back. `null` = no date set. */
-  const [dueInDays, setDueInDays] = useState<number | null>(null);
+  const [date, setDate] = useState(() => new Date().toISOString());
+  /** When the money is expected back. Undefined means no date was set. */
+  const [dueDate, setDueDate] = useState<string | undefined>(undefined);
+  const [picker, setPicker] = useState<'date' | 'due' | null>(null);
   const [picking, setPicking] = useState(!params.personId);
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -56,16 +62,17 @@ export default function NewEntryScreen() {
   const amount = parseAmount(amountText);
   const selected = people.find((person) => person.id === personId);
 
-  const date = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - daysAgo);
-    return d.toISOString();
-  }, [daysAgo]);
+  /** Which preset chip the current due date corresponds to, if any. */
+  const dueMode: DueMode = useMemo(() => {
+    if (!dueDate) return 'none';
+    return ([7, 15, 30] as const).find((days) => isSameDay(dueDate, isoInDays(days))) ?? 'custom';
+  }, [dueDate]);
 
-  const dueDate = useMemo(
-    () => (dueInDays === null ? undefined : isoInDays(dueInDays)),
-    [dueInDays],
-  );
+  const chooseDue = (mode: DueMode) => {
+    if (mode === 'none') setDueDate(undefined);
+    else if (mode === 'custom') setPicker('due');
+    else setDueDate(isoInDays(mode));
+  };
 
   const matches = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -295,35 +302,13 @@ export default function NewEntryScreen() {
               maxLength={80}
             />
 
-            <View className="mt-3 flex-row items-center justify-between rounded-2xl bg-ink-50 px-2 py-2">
-              <Pressable
-                onPress={() => setDaysAgo((value) => value + 1)}
-                hitSlop={8}
-                className="h-9 w-9 items-center justify-center rounded-xl bg-white"
-                accessibilityLabel={t('previousDay')}
-              >
-                <Ionicons name="chevron-back" size={17} color={palette.ink700} />
-              </Pressable>
-
-              <View className="flex-row items-center gap-2">
-                <Ionicons name="calendar-outline" size={16} color={palette.ink400} />
-                <Text className="font-ui-semibold text-[15px] text-ink-800">{relative(date)}</Text>
-              </View>
-
-              <Pressable
-                onPress={() => setDaysAgo((value) => Math.max(0, value - 1))}
-                hitSlop={8}
-                disabled={daysAgo === 0}
-                className={
-                  daysAgo === 0
-                    ? 'h-9 w-9 items-center justify-center rounded-xl bg-white opacity-30'
-                    : 'h-9 w-9 items-center justify-center rounded-xl bg-white'
-                }
-                accessibilityLabel={t('nextDay')}
-              >
-                <Ionicons name="chevron-forward" size={17} color={palette.ink700} />
-              </Pressable>
-            </View>
+            <DateRow
+              label={formatDate(date)}
+              // `relative` falls back to the full date beyond a week, which
+              // would just repeat the label.
+              hint={relative(date) === formatDate(date) ? undefined : relative(date)}
+              onPress={() => setPicker('date')}
+            />
           </View>
 
           {type === 'gave' ? (
@@ -338,45 +323,22 @@ export default function NewEntryScreen() {
                     <Chip
                       key={preset.labelKey}
                       label={t(preset.labelKey)}
-                      active={dueInDays === preset.days}
-                      onPress={() => setDueInDays(preset.days)}
+                      active={dueMode === preset.mode}
+                      onPress={() => chooseDue(preset.mode)}
                     />
                   ))}
                 </View>
 
-                {dueInDays === null || !dueDate ? (
+                {dueDate ? (
+                  <DateRow
+                    label={formatDate(dueDate)}
+                    hint={dueLabel(dueDate)}
+                    onPress={() => setPicker('due')}
+                  />
+                ) : (
                   <Text className="mt-3 font-sans text-[13px] leading-5 text-ink-400">
                     {t('dueHelper')}
                   </Text>
-                ) : (
-                  <View className="mt-3 flex-row items-center justify-between rounded-2xl bg-ink-50 px-2 py-2">
-                    <Pressable
-                      onPress={() => setDueInDays(Math.max(0, dueInDays - 1))}
-                      hitSlop={8}
-                      className="h-9 w-9 items-center justify-center rounded-xl bg-white"
-                      accessibilityLabel={t('dayEarlier')}
-                    >
-                      <Ionicons name="chevron-back" size={17} color={palette.ink700} />
-                    </Pressable>
-
-                    <View className="items-center">
-                      <Text className="font-ui-semibold text-[15px] text-ink-800">
-                        {formatDate(dueDate)}
-                      </Text>
-                      <Text className="font-ui-medium text-[12px] text-brand-700">
-                        {dueLabel(dueDate)}
-                      </Text>
-                    </View>
-
-                    <Pressable
-                      onPress={() => setDueInDays(dueInDays + 1)}
-                      hitSlop={8}
-                      className="h-9 w-9 items-center justify-center rounded-xl bg-white"
-                      accessibilityLabel={t('dayLater')}
-                    >
-                      <Ionicons name="chevron-forward" size={17} color={palette.ink700} />
-                    </Pressable>
-                  </View>
                 )}
               </View>
             </>
@@ -403,7 +365,57 @@ export default function NewEntryScreen() {
           />
         </View>
       </KeyboardAvoidingView>
+
+      <CalendarSheet
+        visible={picker === 'date'}
+        title={t('selectDate')}
+        value={date}
+        // An entry records money that already moved, so it cannot be future-dated.
+        maxDate={new Date().toISOString()}
+        onSelect={setDate}
+        onClose={() => setPicker(null)}
+      />
+
+      <CalendarSheet
+        visible={picker === 'due'}
+        title={t('selectReturnDate')}
+        value={dueDate}
+        // Money cannot be due back before it was handed over.
+        minDate={date}
+        onSelect={setDueDate}
+        onClose={() => setPicker(null)}
+      />
     </SafeAreaView>
+  );
+}
+
+/** A tappable row that shows the chosen date and opens the calendar. */
+function DateRow({
+  label,
+  hint,
+  onPress,
+}: {
+  label: string;
+  hint?: string;
+  onPress: () => void;
+}) {
+  return (
+    <PressableScale
+      onPress={onPress}
+      scaleTo={0.99}
+      className="mt-3 flex-row items-center justify-between rounded-2xl bg-ink-50 px-4 py-3"
+    >
+      <View className="flex-row items-center gap-2">
+        <Ionicons name="calendar-outline" size={16} color={palette.ink400} />
+        <Text className="font-ui-semibold text-[15px] text-ink-800">{label}</Text>
+      </View>
+      <View className="flex-row items-center gap-1">
+        {hint ? (
+          <Text className="font-ui-medium text-[13px] text-brand-700">{hint}</Text>
+        ) : null}
+        <Ionicons name="chevron-forward" size={15} color={palette.ink300} />
+      </View>
+    </PressableScale>
   );
 }
 

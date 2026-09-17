@@ -115,7 +115,7 @@ export default function SettingsScreen() {
           <View className="flex-row flex-wrap gap-2">
             {CURRENCIES.map((option) => (
               <Chip
-                key={option.symbol}
+                key={option.nameKey}
                 label={`${option.symbol}  ${t(option.nameKey)}`}
                 active={settings.currency === option.symbol}
                 onPress={() => updateSettings({ currency: option.symbol })}

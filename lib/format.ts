@@ -111,6 +111,19 @@ export function isoInDays(days: number): string {
   return d.toISOString();
 }
 
+/** True when two ISO timestamps land on the same calendar day. */
+export function isSameDay(a: string, b: string): boolean {
+  return dayKey(a) === dayKey(b);
+}
+
+/**
+ * Midday ISO for a calendar day. Using noon rather than midnight means a
+ * timezone shift can never push the stored date onto the previous day.
+ */
+export function isoFromParts(year: number, month: number, day: number): string {
+  return new Date(year, month, day, 12, 0, 0, 0).toISOString();
+}
+
 export type DueState = 'overdue' | 'today' | 'soon' | 'later';
 
 /** How urgent an expected-return date is, for colouring badges. */

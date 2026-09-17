@@ -90,7 +90,7 @@ export default function WelcomeScreen() {
               const active = settings.currency === option.symbol;
               return (
                 <PressableScale
-                  key={option.symbol}
+                  key={option.nameKey}
                   scaleTo={0.985}
                   onPress={() => {
                     haptics.select();
