@@ -15,7 +15,7 @@
     "android": {
       "package": "com.lenden.app",
       "adaptiveIcon": {
-        "backgroundColor": "#6B8E23",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -33,16 +33,22 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash-icon.png",
-          "imageWidth": 180,
+          "image": "./assets/splash-screen.png",
+          "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#6B8E23"
+          "backgroundColor": "#000000"
         }
       ],
       "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7e810150-267d-405d-bcb0-156f42549e1d"
+      }
     }
   }
 }

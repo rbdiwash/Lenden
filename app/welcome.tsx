@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, Text, View } from 'react-native';
+import { Image, ScrollView, Text, View } from 'react-native';
 import { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -30,9 +30,11 @@ export default function WelcomeScreen() {
         contentContainerStyle={{ paddingBottom: 24 }}
       >
         <Animated.View entering={FadeInDown.duration(420)} className="pb-8 pt-10">
-          <View className="h-14 w-14 items-center justify-center rounded-2xl bg-brand-600">
-            <Ionicons name="wallet-outline" size={26} color="#FFFFFF" />
-          </View>
+          <Image
+            source={require('../assets/icon.png')}
+            style={{ width: 64, height: 64, borderRadius: 16 }}
+            accessibilityLabel="LenDen"
+          />
           <Text className="mt-5 font-display text-[32px] leading-[38px] text-ink-900">
             {t('welcomeTitle')}
           </Text>
