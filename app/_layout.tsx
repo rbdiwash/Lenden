@@ -1,4 +1,4 @@
-import '../global.css';
+import "../global.css";
 
 import {
   Inter_400Regular,
@@ -7,16 +7,20 @@ import {
   Inter_700Bold,
   Inter_800ExtraBold,
   useFonts,
-} from '@expo-google-fonts/inter';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+} from "@expo-google-fonts/inter";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import { StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { FadeOut } from "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { palette } from '@/lib/theme';
-import { useLedger } from '@/store/useLedger';
+import { BrandedSplash } from "@/components/BrandedSplash";
+import Animated from "@/components/ui/animated";
+import { palette } from "@/lib/theme";
+import { useLedger } from "@/store/useLedger";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -40,15 +44,28 @@ export default function RootLayout() {
   }, [setHydrated]);
 
   const ready = (fontsLoaded || Boolean(fontError)) && hydrated;
+  const [brandedVisible, setBrandedVisible] = useState(true);
 
   useEffect(() => {
-    if (ready) SplashScreen.hideAsync().catch(() => {});
+    if (!ready) return;
+    SplashScreen.hideAsync().catch(() => {});
+    // Hold the artwork briefly so it does not flash past on a fast device.
+    const timer = setTimeout(() => setBrandedVisible(false), 1500);
+    return () => clearTimeout(timer);
   }, [ready]);
 
-  if (!ready) return null;
+  if (!ready) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BrandedSplash />
+      </GestureHandlerRootView>
+    );
+  }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: palette.canvas }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: palette.canvas }}
+    >
       <SafeAreaProvider>
         <StatusBar style="dark" />
         <Stack
@@ -65,10 +82,25 @@ export default function RootLayout() {
           <Stack.Protected guard={onboarded}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="person/[id]" />
-            <Stack.Screen name="new-entry" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="new-person" options={{ presentation: 'modal' }} />
+            <Stack.Screen
+              name="new-entry"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="new-person"
+              options={{ presentation: "modal" }}
+            />
           </Stack.Protected>
         </Stack>
+
+        {brandedVisible ? (
+          <Animated.View
+            exiting={FadeOut.duration(400)}
+            style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}
+          >
+            <BrandedSplash />
+          </Animated.View>
+        ) : null}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

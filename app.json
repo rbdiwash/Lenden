@@ -36,7 +36,13 @@
           "image": "./assets/splash-screen.png",
           "resizeMode": "cover",
           "backgroundColor": "#FFFFFF",
-          "enableFullScreenImage_legacy": true
+          "enableFullScreenImage_legacy": true,
+          "android": {
+            "image": "./assets/splash-icon.png",
+            "imageWidth": 180,
+            "resizeMode": "contain",
+            "backgroundColor": "#FFFFFF"
+          }
         }
       ],
       "expo-font"
