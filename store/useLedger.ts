@@ -21,6 +21,8 @@ export interface NewEntryInput {
   date?: string;
   /** Only used for `gave`: when you expect the money back. */
   dueDate?: string;
+  /** Only used for `gave`: annual interest rate as a percentage. */
+  interestRate?: number;
 }
 
 export interface LedgerSnapshot {
@@ -105,7 +107,7 @@ export const useLedger = create<LedgerState>()(
           entries: state.entries.filter((entry) => entry.personId !== id),
         })),
 
-      addEntry: ({ personId, type, amount, note, date, dueDate }) => {
+      addEntry: ({ personId, type, amount, note, date, dueDate, interestRate }) => {
         const now = new Date().toISOString();
         const entry: Entry = {
           id: createId('e_'),
@@ -114,8 +116,10 @@ export const useLedger = create<LedgerState>()(
           amount: Math.abs(Math.round(amount * 100) / 100),
           note: note?.trim() || undefined,
           date: date ?? now,
-          // A return date only makes sense for money leaving your hand.
+          // A return date and interest only make sense for money leaving your hand.
           dueDate: type === 'gave' ? dueDate : undefined,
+          interestRate:
+            type === 'gave' && interestRate && interestRate > 0 ? interestRate : undefined,
           createdAt: now,
         };
         set((state) => ({ entries: [...state.entries, entry] }));
@@ -213,15 +217,15 @@ function buildSampleData(): Pick<LedgerState, 'people' | 'entries'> {
     name: string;
     phone?: string;
     note?: string;
-    /** [type, amount, note, daysAgo, dueInDays?] */
-    entries: Array<[EntryType, number, string, number, number?]>;
+    /** [type, amount, note, daysAgo, dueInDays?, yearlyRate?] */
+    entries: Array<[EntryType, number, string, number, number?, number?]>;
   }> = [
     {
       name: 'Sita Gurung',
       phone: '9801234567',
       note: 'Neighbour',
       entries: [
-        ['gave', 15000, 'Emergency hospital bill', 24, -4],
+        ['gave', 15000, 'Emergency hospital bill', 24, -4, 12],
         ['got', 5000, 'First instalment', 10],
         ['gave', 2500, 'Taxi fare', 3, 11],
       ],
@@ -266,7 +270,7 @@ function buildSampleData(): Pick<LedgerState, 'people' | 'entries'> {
     };
     people.push(person);
 
-    item.entries.forEach(([type, amount, note, daysAgo, dueInDays]) => {
+    item.entries.forEach(([type, amount, note, daysAgo, dueInDays, yearlyRate]) => {
       entries.push({
         id: createId('e_'),
         personId: person.id,
@@ -275,6 +279,7 @@ function buildSampleData(): Pick<LedgerState, 'people' | 'entries'> {
         note,
         date: at(daysAgo),
         dueDate: dueInDays === undefined ? undefined : at(-dueInDays),
+        interestRate: yearlyRate,
         createdAt: at(daysAgo),
       });
     });

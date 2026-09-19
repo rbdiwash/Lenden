@@ -36,6 +36,13 @@ export interface Entry {
    * Undefined means no date was set.
    */
   dueDate?: string;
+  /**
+   * Annual simple-interest rate as a percentage (12 means 12% per year).
+   * Only meaningful on a `gave` entry. Undefined means the loan is interest
+   * free. Accrued interest is always derived from this — it is never folded
+   * into the stored balance, so a ledger can still reach exactly zero.
+   */
+  interestRate?: number;
   createdAt: string;
 }
 

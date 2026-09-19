@@ -20,21 +20,22 @@
 
 const BRAND_PRESETS = {
   /**
-   * Default. Deep petrol teal. Chosen because the accent has to sit next to
+   * Default. Sampled straight from the Len Den logo — 700 is the exact
+   * pine-green of the mark (#124E42). It has to sit next to
    * green "money you'll get" and red "money you'll give" without being
    * mistaken for either — an avocado accent reads as another success colour.
    */
   teal: {
-    50: '#ECFAF8',
-    100: '#D0F2ED',
-    200: '#A3E5DC',
-    300: '#6FD2C6',
-    400: '#3DB8AA',
-    500: '#1D9A8C',
-    600: '#0F766E',
-    700: '#0C5D57',
-    800: '#0A4944',
-    900: '#073330',
+    50: '#EAF3F0',
+    100: '#CEE5DF',
+    200: '#A0C9BF',
+    300: '#6DA99B',
+    400: '#3F8876',
+    500: '#1E6B58',
+    600: '#16594A',
+    700: '#124E42',
+    800: '#0D3A31',
+    900: '#082722',
   },
 
   /** Yellow-green. Warm and distinctive, but close to the "you'll get" green. */
@@ -100,6 +101,24 @@ const ACTIVE_BRAND = 'teal';
 /* -------------------------------------------------------------------------- */
 /*  Semantic colours                                                          */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * The orange half of the logo, sampled from the artwork (500 = #E48A2A). A secondary brand colour, not a status colour —
+ * it carries the floating action button and other highlights so the app reads
+ * as the same two-tone mark. Money meanings stay with `get` and `give`.
+ */
+const accent = {
+  50: '#FEF5EA',
+  100: '#FBE5C8',
+  200: '#F6CB98',
+  300: '#F0AF67',
+  400: '#EA9B43',
+  500: '#E48A2A',
+  600: '#C5731C',
+  700: '#9C5915',
+  800: '#764310',
+  900: '#4F2D0A',
+};
 
 /** Money owed to you — "you'll get". Avocado green. */
 const get = {
@@ -168,6 +187,7 @@ module.exports = {
   BRAND_PRESETS,
   ACTIVE_BRAND,
   brand: BRAND_PRESETS[ACTIVE_BRAND],
+  accent,
   get,
   give,
   warn,

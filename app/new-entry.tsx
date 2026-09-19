@@ -19,7 +19,8 @@ import { Chip } from '@/components/ui/Chip';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { useI18n } from '@/hooks/useI18n';
 import { usePeople, useSummaries } from '@/hooks/useLedgerData';
-import { isSameDay, isoInDays, parseAmount } from '@/lib/format';
+import { daysBetween, isSameDay, isoInDays, parseAmount } from '@/lib/format';
+import { interestBetween, interestPerDay } from '@/lib/interest';
 import { haptics } from '@/lib/haptics';
 import type { TKey } from '@/lib/i18n';
 import { dismiss } from '@/lib/nav';
@@ -55,11 +56,22 @@ export default function NewEntryScreen() {
   /** When the money is expected back. Undefined means no date was set. */
   const [dueDate, setDueDate] = useState<string | undefined>(undefined);
   const [picker, setPicker] = useState<'date' | 'due' | null>(null);
+  const [hasInterest, setHasInterest] = useState(false);
+  const [rateText, setRateText] = useState('');
   const [picking, setPicking] = useState(!params.personId);
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const amount = parseAmount(amountText);
+  const rate = parseAmount(rateText);
+
+  // Live preview of what the rate actually costs, so a yearly percentage
+  // becomes a concrete rupee figure before the entry is saved.
+  const perDay = amount > 0 && rate > 0 ? interestPerDay(amount, rate) : 0;
+  const untilDue =
+    dueDate && amount > 0 && rate > 0
+      ? interestBetween(amount, rate, daysBetween(new Date(dueDate), new Date(date)))
+      : 0;
   const selected = people.find((person) => person.id === personId);
 
   /** Which preset chip the current due date corresponds to, if any. */
@@ -113,8 +125,20 @@ export default function NewEntryScreen() {
       setError(t('errorAmount'));
       return;
     }
+    if (type === 'gave' && hasInterest && rate <= 0) {
+      setError(t('errorInterestRate'));
+      return;
+    }
 
-    addEntry({ personId, type, amount, note, date, dueDate });
+    addEntry({
+      personId,
+      type,
+      amount,
+      note,
+      date,
+      dueDate,
+      interestRate: hasInterest ? rate : undefined,
+    });
     haptics.success();
     dismiss();
   };
@@ -338,6 +362,64 @@ export default function NewEntryScreen() {
                 ) : (
                   <Text className="mt-3 font-sans text-[13px] leading-5 text-ink-400">
                     {t('dueHelper')}
+                  </Text>
+                )}
+              </View>
+
+              <Text className="mb-2 mt-5 font-ui-semibold text-[13px] uppercase tracking-wider text-ink-400">
+                {t('interestSection')}
+              </Text>
+
+              <View className="rounded-3xl bg-white p-4 shadow-sm shadow-ink-900/5">
+                <PressableScale
+                  scaleTo={0.99}
+                  onPress={() => {
+                    haptics.select();
+                    setHasInterest((value) => !value);
+                    setError(null);
+                  }}
+                  className="flex-row items-center"
+                >
+                  <Ionicons
+                    name={hasInterest ? 'checkbox' : 'square-outline'}
+                    size={22}
+                    color={hasInterest ? palette.brand600 : palette.ink300}
+                  />
+                  <Text className="ml-3 flex-1 font-ui-semibold text-[15px] text-ink-900">
+                    {t('chargeInterest')}
+                  </Text>
+                </PressableScale>
+
+                {hasInterest ? (
+                  <View className="mt-3 flex-row items-center rounded-2xl bg-ink-50 px-4">
+                    <TextInput
+                      value={rateText}
+                      onChangeText={(text) => {
+                        setRateText(text);
+                        setError(null);
+                      }}
+                      placeholder="0"
+                      placeholderTextColor={palette.ink300}
+                      keyboardType="decimal-pad"
+                      className="h-12 min-w-0 flex-1 font-ui-bold text-[17px] text-ink-900"
+                      maxLength={6}
+                    />
+                    <Text className="font-ui-semibold text-[14px] text-ink-400">
+                      {t('interestPerYear')}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {hasInterest && perDay > 0 ? (
+                  <Text className="mt-3 font-ui-medium text-[13px] leading-5 text-brand-700">
+                    {t('interestPerDayValue', { amount: money(perDay) })}
+                    {untilDue > 0 && dueDate
+                      ? ` · ${t('interestByDue', { amount: money(untilDue), date: formatDate(dueDate) })}`
+                      : ''}
+                  </Text>
+                ) : (
+                  <Text className="mt-3 font-sans text-[13px] leading-5 text-ink-400">
+                    {t('interestHelper')}
                   </Text>
                 )}
               </View>

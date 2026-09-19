@@ -19,6 +19,11 @@ export const palette = {
   brand800: colors.brand[800],
   brand900: colors.brand[900],
 
+  accent400: colors.accent[400],
+  accent500: colors.accent[500],
+  accent600: colors.accent[600],
+  accent700: colors.accent[700],
+
   get500: colors.get[500],
   get600: colors.get[600],
   get700: colors.get[700],

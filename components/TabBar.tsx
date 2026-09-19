@@ -133,7 +133,8 @@ function AddButton() {
         accessibilityLabel={t('addEntryLabel')}
       >
         <Animated.View style={animatedStyle}>
-          <View className="h-16 w-16 items-center justify-center rounded-full border-4 border-canvas bg-brand-600 shadow-xl shadow-brand-800/40">
+          {/* Orange against the teal chrome, mirroring the two-tone logo. */}
+          <View className="h-16 w-16 items-center justify-center rounded-full border-4 border-canvas bg-accent-500 shadow-xl shadow-accent-700/40">
             <Ionicons name="add" size={30} color="#FFFFFF" />
           </View>
         </Animated.View>

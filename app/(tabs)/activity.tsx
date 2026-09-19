@@ -99,7 +99,7 @@ export default function ActivityScreen() {
             entry={item}
             person={peopleById[item.personId]}
             caption={time(item.date)}
-            showDue={owing.has(item.personId)}
+            showLoanMeta={owing.has(item.personId)}
             onPress={() => router.push(`/person/${item.personId}`)}
           />
         )}

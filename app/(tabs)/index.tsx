@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppLogo } from '@/components/AppLogo';
 import { BalanceHero } from '@/components/BalanceHero';
 import { EntryRow } from '@/components/EntryRow';
 import { PersonRow } from '@/components/PersonRow';
@@ -76,12 +77,7 @@ export default function HomeScreen() {
         className="px-5"
       >
         <View className="flex-row items-center justify-between pb-5 pt-2">
-          <View>
-            <Text className="font-display text-[26px] text-ink-900">Len Den</Text>
-            <Text className="mt-0.5 font-sans text-[13px] text-ink-400">
-              {t('homeSubtitle')}
-            </Text>
-          </View>
+          <AppLogo />
           <Pressable
             onPress={() => {
               haptics.tap();
@@ -191,7 +187,7 @@ export default function HomeScreen() {
                     key={entry.id}
                     entry={entry}
                     person={peopleById[entry.personId]}
-                    showDue={false}
+                    showLoanMeta={false}
                     onPress={() => router.push(`/person/${entry.personId}`)}
                   />
                 ))}

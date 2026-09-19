@@ -17,10 +17,11 @@ interface Props {
   /** Replaces the small caption under the amount (the date, by default). */
   caption?: string;
   /**
-   * Whether to surface this entry's expected return date. Callers pass false
-   * once the person's ledger is settled, since old due dates stop mattering.
+   * Whether to surface loan details — the expected return date and the
+   * interest rate. Callers pass false once the person's ledger is settled,
+   * since neither means anything after that.
    */
-  showDue?: boolean;
+  showLoanMeta?: boolean;
   onPress?: () => void;
   onLongPress?: () => void;
 }
@@ -34,7 +35,7 @@ export function EntryRow({
   person,
   runningBalance,
   caption,
-  showDue = true,
+  showLoanMeta = true,
   onPress,
   onLongPress,
 }: Props) {
@@ -48,7 +49,8 @@ export function EntryRow({
   const subtitle = person
     ? `${direction}${entry.note ? ` · ${entry.note}` : ''}`
     : `${direction} · ${relative(entry.date)}`;
-  const due = showDue && gave && entry.dueDate ? entry.dueDate : null;
+  const due = showLoanMeta && gave && entry.dueDate ? entry.dueDate : null;
+  const rate = showLoanMeta && gave ? entry.interestRate : undefined;
 
   return (
     <PressableScale
@@ -82,9 +84,17 @@ export function EntryRow({
         <Text className="mt-0.5 font-sans text-[13px] text-ink-400" numberOfLines={1}>
           {subtitle}
         </Text>
-        {due ? (
-          <View className="mt-1.5">
-            <DueBadge dueDate={due} />
+        {due || rate ? (
+          <View className="mt-1.5 flex-row flex-wrap items-center gap-1.5">
+            {due ? <DueBadge dueDate={due} /> : null}
+            {rate ? (
+              <View className="flex-row items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5">
+                <Ionicons name="trending-up" size={11} color={palette.brand700} />
+                <Text className="font-ui-semibold text-[11px] text-brand-700">
+                  {t('interestRateBadge', { rate })}
+                </Text>
+              </View>
+            ) : null}
           </View>
         ) : null}
       </View>

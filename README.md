@@ -36,6 +36,30 @@ it is far off, amber within a week, red once it is overdue.
 Due dates are hidden once the person's balance is no longer in your favour,
 since an old return date stops meaning anything after a ledger is settled.
 
+## Interest
+
+A **You gave** entry can carry a yearly interest rate. Interest is simple, not
+compounding, and prorated by the day:
+
+    interest = principal × (rate / 100) × (days / 365)
+
+So a yearly percentage accrues a little every day, which is how informal
+lending is normally reckoned.
+
+**Accrued interest is derived, never stored.** It is not added to the balance
+and not written into any entry. Two reasons:
+
+1. A stored balance that grew on its own every day could never be settled —
+   *Settle up* would always leave a few paisa behind and the ledger could not
+   reach exactly zero.
+2. The ledger stays an honest record of money that actually changed hands.
+   When the borrower really pays the interest, that is a normal `got` entry.
+
+The person screen therefore shows the principal balance as the headline figure,
+with "With interest" and "Interest so far" beside it. Interest stops accruing
+once a person's balance is settled or in your favour, the same rule due dates
+follow. See `lib/interest.ts`.
+
 ## Screens
 
 | Route                 | What it does                                                            |

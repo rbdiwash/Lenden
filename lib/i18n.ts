@@ -23,9 +23,6 @@ type Vars = Record<string, string | number>;
 const en = {
   // ── Common ──────────────────────────────────────────────────────────────
   appName: "Len Den",
-  tagline: "your money khata",
-  /** Sits under the wordmark on the home screen. */
-  homeSubtitle: "लेनदेन · your money khata",
   seeAll: "See all",
   cancel: "Cancel",
   delete: "Delete",
@@ -201,6 +198,20 @@ const en = {
   dueCustom: "Pick a date",
   dueHelper:
     "Optional. Set a date and this loan shows up under “Expected returns” on the home screen.",
+  // ── Interest ────────────────────────────────────────────────────────────
+  interestSection: "Interest",
+  chargeInterest: "Charge interest on this loan",
+  interestRateLabel: "Yearly rate",
+  interestPerYear: "% per year",
+  interestHelper:
+    "Simple interest, worked out day by day. It is shown next to the balance, never added to it — so settling up still lands on zero.",
+  interestPerDayValue: "{amount} a day",
+  interestByDue: "{amount} by {date}",
+  interestSoFar: "Interest so far",
+  interestWithTotal: "With interest {amount}",
+  interestRateBadge: "{rate}% p.a.",
+  errorInterestRate: "Enter a yearly rate greater than zero.",
+
   saveGiven: "Save given {amount}",
   saveReceived: "Save received {amount}",
   errorChoosePerson: "Choose who this entry is with.",
@@ -248,8 +259,6 @@ export type TKey = keyof typeof en;
 const ne: Record<TKey, string> = {
   // ── Common ──────────────────────────────────────────────────────────────
   appName: "लेनदेन",
-  tagline: "तपाईंको पैसाको खाता",
-  homeSubtitle: "लेनदेन · तपाईंको पैसाको खाता",
   seeAll: "सबै हेर्नुहोस्",
   cancel: "रद्द गर्नुहोस्",
   delete: "मेट्नुहोस्",
@@ -422,6 +431,20 @@ const ne: Record<TKey, string> = {
   dueCustom: "मिति छान्नुहोस्",
   dueHelper:
     "वैकल्पिक। मिति राख्नुभयो भने यो ऋण गृह पृष्ठको “फिर्ता आउने रकम” मा देखिन्छ।",
+  // ── Interest ────────────────────────────────────────────────────────────
+  interestSection: "ब्याज",
+  chargeInterest: "यो ऋणमा ब्याज लगाउने",
+  interestRateLabel: "वार्षिक दर",
+  interestPerYear: "% वार्षिक",
+  interestHelper:
+    "साधारण ब्याज, दिनैपिच्छे गणना हुन्छ। यो बाँकी रकमसँगै देखाइन्छ, त्यसमा जोडिँदैन — त्यसैले हिसाब मिलाउँदा शून्यमै आइपुग्छ।",
+  interestPerDayValue: "दिनको {amount}",
+  interestByDue: "{date} सम्ममा {amount}",
+  interestSoFar: "अहिलेसम्मको ब्याज",
+  interestWithTotal: "ब्याजसहित {amount}",
+  interestRateBadge: "{rate}% वार्षिक",
+  errorInterestRate: "शून्यभन्दा बढी वार्षिक दर राख्नुहोस्।",
+
   saveGiven: "{amount} दिएको राख्नुहोस्",
   saveReceived: "{amount} पाएको राख्नुहोस्",
   errorChoosePerson: "यो प्रविष्टि कोसँगको हो छान्नुहोस्।",

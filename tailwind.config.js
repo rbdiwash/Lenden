@@ -15,6 +15,7 @@ module.exports = {
       // Every colour comes from theme/colors.js — edit that file, not this one.
       colors: {
         brand: colors.brand,
+        accent: colors.accent,
         get: colors.get,
         give: colors.give,
         warn: colors.warn,

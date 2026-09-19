@@ -34,9 +34,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-screen.png",
-          "imageWidth": 220,
-          "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "resizeMode": "cover",
+          "backgroundColor": "#FFFFFF",
+          "enableFullScreenImage_legacy": true
         }
       ],
       "expo-font"

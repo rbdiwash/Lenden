@@ -15,6 +15,7 @@ import { usePerson, usePersonLedger } from '@/hooks/useLedgerData';
 import { confirm } from '@/lib/confirm';
 import { dueState } from '@/lib/format';
 import { haptics } from '@/lib/haptics';
+import { interestForPerson } from '@/lib/interest';
 import { dismiss } from '@/lib/nav';
 import { palette } from '@/lib/theme';
 import { useLedger } from '@/store/useLedger';
@@ -28,6 +29,12 @@ export default function PersonScreen() {
   const removePerson = useLedger((state) => state.removePerson);
   const removeEntry = useLedger((state) => state.removeEntry);
   const settleUp = useLedger((state) => state.settleUp);
+
+  /** Interest earned so far across this person's live loans. */
+  const accruedInterest = useMemo(
+    () => interestForPerson(entries, balance),
+    [entries, balance],
+  );
 
   // The soonest expected return still outstanding, surfaced on the balance card.
   const nextDue = useMemo(() => {
@@ -164,12 +171,27 @@ export default function PersonScreen() {
                 <Text className="mt-1 font-display text-[34px] leading-[40px] text-white">
                   {money(balance)}
                 </Text>
+                {accruedInterest > 0 ? (
+                  <Text className="mt-1 font-ui-semibold text-[15px] text-brand-200">
+                    {t('interestWithTotal', { amount: money(balance + accruedInterest) })}
+                  </Text>
+                ) : null}
+
                 <Text className="mt-1 font-sans text-[13px] text-brand-100">
                   {tp('entriesRecorded', entries.length)}
                 </Text>
 
-                {nextDue ? (
+                {accruedInterest > 0 ? (
                   <View className="mt-4 flex-row items-center gap-1.5 self-start rounded-full bg-white/15 px-3 py-1.5">
+                    <Ionicons name="trending-up" size={14} color="#FFFFFF" />
+                    <Text className="font-ui-semibold text-[12px] text-white">
+                      {t('interestSoFar')} · {money(accruedInterest)}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {nextDue ? (
+                  <View className="mt-2 flex-row items-center gap-1.5 self-start rounded-full bg-white/15 px-3 py-1.5">
                     <Ionicons
                       name={dueState(nextDue) === 'overdue' ? 'alert-circle' : 'time-outline'}
                       size={14}
@@ -251,7 +273,7 @@ export default function PersonScreen() {
           <EntryRow
             entry={item}
             runningBalance={running[item.id]}
-            showDue={balance > 0}
+            showLoanMeta={balance > 0}
             onLongPress={() => onDeleteEntry(item.id, item.amount)}
           />
         )}
